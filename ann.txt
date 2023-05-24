@@ -1,0 +1,211 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+class Act_Fun():
+
+    def sigmoid(x):
+        return 1/ (1+np.exp(-x))
+    
+    def relu(x):
+        return np.maximum(0,x)
+    
+    def linear(x):
+        return x
+    
+    def tanh(x):
+        return np.tanh(x)
+    
+    def softmax(x):
+        e = np.exp(x)
+        return e / e.sum()
+
+x = np.array([-5,-4,-3,-2,-1,0,1,2,3,4,5])
+
+a = Act_Fun.sigmoid(x)
+b = Act_Fun.relu(x)
+c = Act_Fun.linear(x)
+d = Act_Fun.tanh(x)
+f = Act_Fun.softmax(x)
+
+#Sigmoid Activation
+
+plt.plot(x, a)
+plt.title("Sigmoid Activation")
+print("sig: ", a)
+
+#same for others
+
+
+
+OR
+
+
+
+import numpy as np
+
+def sigmoid(x):
+    return 1 / (1+np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1-x)
+
+def xor(x):
+    return np.array([[0],[1],[1],[0]])
+
+X = np.array([[0,0],[0,1],[1,0],[1,1]])
+y = xor(X)
+
+input_layer = 2
+hidden_layer = 10
+output_layer = 1
+
+weight_input_hidden = np.random.randn(input_layer, hidden_layer)
+weight_hidden_output = np.random.randn(hidden_layer, output_layer)
+
+learning_rate = 0.1
+epochs = 10000
+
+for i in range(epochs):
+    
+    #forward pass
+    hidden_input= np.dot(X, weight_input_hidden)
+    hidden_output = sigmoid(hidden_input)
+    output_input = np.dot(hidden_output,weight_hidden_output)
+    output = sigmoid(output_input)
+
+    #backward pass
+    error = y-output
+    output_error = error * sigmoid_derivative(output)
+
+    hidden_error = output_error.dot(weight_hidden_output.T)*sigmoid_derivative(hidden_output)
+
+    #update
+    weight_input_hidden += X.T.dot(hidden_error)*learning_rate
+    weight_hidden_output += hidden_output.T.dot(output_error)*learning_rate
+
+#test
+input_array = np.array([[0,1],[1,0],[1,1],[0,0]])
+
+hidden_input = np.dot(input_array, weight_input_hidden)
+hidden_output = sigmoid(hidden_input)
+
+output_input = np.dot(hidden_output, weight_hidden_output)
+output = sigmoid(output_input)
+
+print(f"Input data:\n{input_array}\nPrediction:\n{output}")
+
+OR
+
+import numpy as np
+
+class ART1:
+    def __init__(self, num_input_nodes, num_categories, vigilance):
+        self.num_input_nodes = num_input_nodes
+        self.num_categories = num_categories
+        self.vigilance = vigilance
+        self.weights = np.ones((num_categories, num_input_nodes))
+
+    def learning(self, input_pattern):
+        while True:
+            response = np.dot(self.weights, input_pattern)
+            weighted_sum = np.sum(self.weights, axis=1)
+            activation = response / weighted_sum
+            category = np.argmax(activation)
+            match = np.sum(np.minimum(self.weights[category], input_pattern))
+
+            # calculate the normalized match
+            normalized_match = match / np.sum(input_pattern)
+            if normalized_match > self.vigilance:  # if the normalized match is greater than the vigilance, the input pattern is assigned to the category, and the weights are updated
+                self.weights[category] = np.minimum(self.weights[category], input_pattern)
+                break
+            else:                                  # if the normalized match is less than or equal to the vigilance, a new category is created with the input pattern as its weights
+                self.weights = np.vstack([self.weights, input_pattern])
+                self.num_categories += 1
+
+    def classify(self, input_pattern):
+        response = np.dot(self.weights, input_pattern)
+        weights_sum = np.sum(self.weights, axis=1)
+        activation = response / weights_sum
+        category = np.argmax(activation)
+        return category, activation[category]
+
+# Create Network with 4 input nodes, 3 categories, and vigilance of 0.7
+network = ART1(4, 3, 0.7)
+# Call learning Method
+network.learning(np.array([1, 0, 1, 0]))
+network.learning(np.array([0, 1, 0, 1]))
+network.learning(np.array([1, 1, 0, 0]))
+
+print(network.classify(np.array([1, 0, 0, 0])))
+print(network.classify(np.array([0, 1, 1, 0])))
+
+
+OR 
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+class Perceptron:
+    def __init__(self, learning_rate=0.01, n_iter=100):
+        self.learning_rate = learning_rate
+        self.n_iter = n_iter
+
+    def fit(self, X, y):
+        self.weights = np.zeros(1 + X.shape[1])
+        self.errors = []
+
+        for _ in range(self.n_iter): 
+            error = 0
+            for xi, target in zip(X, y):
+                update = self.learning_rate * (target - self.predict(xi))
+                self.weights[1:] += update * xi
+                self.weights[0] += update
+                error += int(update != 0.0)
+            self.errors.append(error)
+
+    def net_input(self, X):
+        return np.dot(X, self.weights[1:]) + self.weights[0]
+
+    def predict(self, X):
+        return np.where(self.net_input(X) >= 0.0, 1, -1)
+
+
+# Generate sample data
+np.random.seed(0)
+X = np.random.randn(100, 2)
+y = np.where(X[:, 0] + X[:, 1] > 0, 1, -1)
+
+# Initialize and train the perceptron
+perceptron = Perceptron(learning_rate=0.1, n_iter=10)
+perceptron.fit(X, y)
+
+plt.scatter(X[y == 1, 0], X[y == 1, 1], color='red', marker='o', label='Class 1')
+plt.scatter(X[y == -1, 0], X[y == -1, 1], color='blue', marker='x', label='Class -1')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+
+#decision region
+xmin, xmax = X[:, 0].min() - 1, X[:, 0].max() + 1
+ymin, ymax = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(xmin, xmax, 0.1), np.arange(ymin, ymax, 0.1))
+Z = perceptron.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+plt.xlim(xmin, xmax)
+plt.ylim(ymin, ymax)
+
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
