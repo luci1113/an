@@ -1,0 +1,174 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+
+dft = pd.read_csv("titanic.csv")
+dft.head()
+
+dft.drop(['PassengerId','Name', 'Ticket', 'Fare', 'Cabin'], axis=1, inplace= True)
+
+dft.isnull().sum()
+dft['Age'].fillna(dft['Age'].mean(), inplace=True)
+dft['Embarked'].fillna(dft['Embarked'].mode()[0], inplace=True)
+
+dft.isnull().sum()
+
+dft = pd.get_dummies(dft, columns=['Sex','Embarked'])
+dft.head()
+
+X = dft.drop('Survived', axis=1)
+y = dft['Survived']
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+m = LogisticRegression() 
+# m = GaussianNB()
+# m = DecisionTreeClassifier()
+
+m.fit(X_train, y_train)
+p = m.predict(X_test)
+print(f"Prediction: {p}")
+print(f"Accurecy is: {accuracy_score(y_test, p)*100}")
+
+import seaborn as sns
+sns.countplot(x = y_train, data = dft)
+sns.countplot(x = y_test, data = dft)
+
+
+OR
+
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+
+data = pd.read_csv("Tweets.csv")
+data.head()
+data.isnull().sum()
+
+data.drop(['tweet_id','airline_sentiment_confidence', 'negativereason', 'negativereason_confidence', 'tweet_location','tweet_created','tweet_coord', 'user_timezone', 'airline_sentiment_gold', 'negativereason_gold', 'retweet_count', 'name','airline'], axis=1, inplace= True)
+data.head()
+
+le = LabelEncoder()
+le.fit(data['airline_sentiment'])
+data['airline_sentiment'] = le.transform(data['airline_sentiment'])
+
+data.isnull().sum()
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
+
+X = data['text']
+y = data['airline_sentiment']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Convert the text into a bag of words using CountVectorizer
+vectorizer = TfidfVectorizer()
+X_train_counts = vectorizer.fit_transform(X_train)
+X_test_counts = vectorizer.transform(X_test)
+
+# Train the model
+clf = KNeighborsClassifier(n_neighbors = 5)
+clf.fit(X_train_counts, y_train)
+
+# Make predictions on the testing set
+y_pred = clf.predict(X_test_counts)
+
+# Calculate the accuracy of the model
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy: {:.2f}%".format(accuracy*100))
+print(y_pred)
+
+OR
+
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+data = pd.read_csv('abalone.csv')
+data.head()
+
+data.isnull().sum()
+
+print(f"Label of sex BEFORE: {data['Sex'].unique()}")
+data = pd.get_dummies(data, columns=['Sex'])
+
+data['Rings'] = pd.cut(data['Rings'], bins=[0,8,10,30], labels=['Young Age', 'Middle Age', 'Old Age'])
+
+
+X = data.drop(['Rings'], axis=1)
+y = data['Rings']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+lr = LogisticRegression()
+lr.fit(X_train, y_train)
+prediction = lr.predict(X_test)
+
+print(f"Prediction on test: {prediction}\n")
+print(f"Accuracy: {accuracy_score(y_test, prediction)*100}")
+
+OR
+
+
+import numpy as np
+
+# Given Points
+points = np.array([[0.1, 0.6], [0.15, 0.71], [0.08, 0.9], [0.16, 0.85],
+                   [0.2, 0.3], [0.25, 0.5], [0.24, 0.1], [0.3, 0.2]])
+
+# Initial Centroids by index
+m1 = points[0]  # P1=m1, C1
+m2 = points[7]  # P8=2, C2
+
+# Define a function to calculate the Euclidean distance between two points
+def distance(p1, p2):
+    return np.sqrt(np.sum((p1 - p2)**2))
+
+while True:
+    # Initialize empty lists for the two clusters
+    c1 = []
+    c2 = []
+    
+    # Assign each point to the nearest centroid
+    for p in points:
+        d1 = distance(p, m1)
+        d2 = distance(p, m2)
+        if d1 < d2:
+            c1.append(p)
+        else:
+            c2.append(p)
+    
+    # Update the centroids to the mean of the points assigned to them
+    m1_new = np.mean(c1, axis=0)
+    m2_new = np.mean(c2, axis=0)
+    
+    # Check if the centroids have converged
+    if np.allclose(m1, m1_new) and np.allclose(m2, m2_new):
+        break
+    
+    # Otherwise, update the centroids and continue iterating
+    m1 = m1_new
+    m2 = m2_new
+
+print("Cluster 1 (", len(c1), "points):")
+print(np.round(c1,4))
+print("Centroid 1:", m1)
+print()
+print("Cluster 2 (", len(c2), "points):")
+print(np.round(c2,4))
+print("Centroid 2:", m2)
